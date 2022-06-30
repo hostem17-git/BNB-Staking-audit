@@ -76,6 +76,7 @@ describe("Token Testing", function () {
   describe("Staking test, Single User, Single Stake, No referral", async () => {
 
     it("Should Handle Single Stake correclty", async () => {
+      
       await token.connect(addr1).stakeBnb({
         value: ethers.utils.parseEther("100"),
       })
@@ -86,19 +87,20 @@ describe("Token Testing", function () {
 
       let stake = await token.stakedBalance(addr1.address);
 
-      console.log(stake)
+      // console.log(stake)
       expect(stake["totalBalance"].toString(),"Staked Total Balance").to.equal(BigNumber(100).multiply(weiMultiplier).toString());
       expect(stake["balance"].toString(),"Actual Stake").to.equal(BigNumber(100).multiply(weiMultiplier).multiply(90).divide(100).toString());
+      expect((await token.connect(addr1).checkMaxEarnings()).toString(),"Max Earning Test").to.equal(BigNumber(100).multiply(weiMultiplier).multiply(90).divide(100).multiply(250).divide(100).toString())
 
     })
 
 
+
   })
 
-  return
 
 
-  describe("Staking Test", async () => {
+  describe("Staking limit Test", async () => {
 
     it("Should restrict less than minimum amount staking", async () => {
 
@@ -220,8 +222,9 @@ describe("Token Testing", function () {
     })
 
     it("Should revert Token bonus withdrawl when contract is paused #Referral Bonus", async () => {
+      
       await token.connect(addr1).stakeBnb({
-        value: ethers.utils.parseEther("10")
+        value: ethers.utils.parseEther("100")
       })
 
       await token.connect(addr2).registerUser(addr1.address);

@@ -282,7 +282,6 @@ contract StakingBNB {
         uint256[5] memory _refTs = userDetails[_user].referrals.reTs;
         uint256 _eligibleLvl = _getMaximumReferralStack(_user);
 
-        //console.log("_eligibleLvl: ", _eligibleLvl);
 
         uint256 _totalRefEarr = stakedBalance[_user].totalRefEarnings;
 
@@ -293,11 +292,6 @@ contract StakingBNB {
                 (100 * 24 * 60 * 60);
             userDetails[_user].referrals.reTs[i] = block.timestamp;
             _totalRefEarr += _earnings;
-
-            //console.log("_timeDiff: ", _timeDiff);
-            //console.log("_rate: ", _rate);
-            //console.log("_earnings: ", _earnings);
-            //console.log("_totalRefEarr: ", _totalRefEarr);
         }
 
         uint256 _maxEarnings = checkMaxEarnings();
@@ -332,7 +326,7 @@ contract StakingBNB {
         emit WITHDRAW(_user, _netEarnings);
     }
 
-    function withdrawReferralBonus(uint256 _amount) public {
+    function deductPerformanceFees(uint256 _amount) public {
         require(_amount >= MINIMUM_CONTRIBUTION, "withdraw atleast 0.01 BNB");
         address _user = payable(msg.sender);
         require(
