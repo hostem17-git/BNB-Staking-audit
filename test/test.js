@@ -108,11 +108,7 @@ describe("Token Testing", function () {
 
       expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(0).toString());
     });
-
-
-
   });
-  return;
   
   describe("whale Tax Test",async()=>{
 
@@ -383,16 +379,22 @@ describe("Token Testing", function () {
   describe("Max withdrawl test", async () => {
 
     it("Should limit daily max withdrawal correctly", async () => {
+      await token.connect(addr1).stakeBnb({
+        value:ethers.utils.parseEther("1")
+      })
       await increaseDays(500);
 
       await expect(
         token.connect(addr1).withdrawOwnBonus(
-          BigNumber(11).multiply(weiMultiplier).div.toString()
+          BigNumber(11).multiply(weiMultiplier).div(10).toString()
         )
       ).to.be.revertedWith("daily withdrawal limit reached");
     })
 
     it("Should increase daily withdrawal limit correctly", async () => {
+      await token.connect(addr1).stakeBnb({
+        value:ethers.utils.parseEther("1")
+      })
       await increaseDays(10);
       await token.connect(addr1).stakeBnb({
         value: ethers.utils.parseEther("1")
