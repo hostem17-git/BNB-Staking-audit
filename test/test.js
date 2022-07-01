@@ -61,7 +61,76 @@ describe("Token Testing", function () {
   })
 
 
+  describe("Max Referral Stack test",async()=>{
+    
+    it("Should return correct eligible referral stack,No stake",async()=>{
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(0).toString());
+    });
+
+    it("Should return correct eligible referral stack,.01 stake",async()=>{
+      await token.connect(addr1).stakeBnb(({
+        value:ethers.utils.parseEther("0.012")
+      }))
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(1).toString());
+    });
+
+    it("Should return correct eligible referral stack,.1 stake",async()=>{
+      await token.connect(addr1).stakeBnb(({
+        value:ethers.utils.parseEther("0.12")
+      }))
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(2).toString());
+    });
+    it("Should return correct eligible referral stack,1 stake",async()=>{
+      await token.connect(addr1).stakeBnb(({
+        value:ethers.utils.parseEther("1.2")
+      }))
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(3).toString());
+    });
+    it("Should return correct eligible referral stack,5 stake",async()=>{
+      await token.connect(addr1).stakeBnb(({
+        value:ethers.utils.parseEther("5.6")
+      }))
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(4).toString());
+    }); 
+    it("Should return correct eligible referral stack,10 BNB stake",async()=>{
+      await token.connect(addr1).stakeBnb(({
+        value:ethers.utils.parseEther("11.2")
+      }))
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(5).toString());
+    });
+
+    it("Should return correct eligible referral stack,10 BNB stake, expired stake",async()=>{
+      await token.connect(addr1).stakeBnb(({
+        value:ethers.utils.parseEther("11.2")
+      }))
+
+      await increaseDays(1000);
+
+      expect((await token._getMaximumReferralStack(addr1.address)).toString()).to.equal(BigNumber(0).toString());
+    });
+
+
+
+  });
+  return;
   
+  describe("whale Tax Test",async()=>{
+
+    it("Shoud calculate AntiWhale Tax Correctly",async()=>{
+
+      // <1 %
+      let tax =await token._checkAntiWhaleTaxes(BigNumber(4).multiply(weiMultiplier).toString())
+      expect(tax.toString(),"<1").to.equal(BigNumber(0).toString());
+
+      tax =await token._checkAntiWhaleTaxes(BigNumber(5).multiply(weiMultiplier).toString())
+      expect(tax.toString(),"=1").to.equal(BigNumber(5).multiply(weiMultiplier).multiply(5).divide(100).toString());
+
+      tax =await token._checkAntiWhaleTaxes(BigNumber(95).multiply(weiMultiplier).divide(10).toString())
+      expect(tax.toString(),"1.9").to.equal(BigNumber(95).multiply(weiMultiplier).div(10).multiply(5).divide(100).toString());
+    });
+
+  });
+
   describe("Own Earnings Test,single user, Multiple Stake",async()=>{
 
     it("Should calculate daily Earnings correctly with multiple stakes",async()=>{

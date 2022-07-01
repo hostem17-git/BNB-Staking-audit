@@ -608,8 +608,9 @@ contract StakingBNB {
         return userDetails[_refferer].refferedBy;
     }
 
+    //Made public for testing
     function _getMaximumReferralStack(address _address)
-        internal
+        public
         view
         returns (uint256 stack)
     {
