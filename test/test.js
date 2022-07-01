@@ -58,48 +58,200 @@ describe("Token Testing", function () {
     await addr7.sendTransaction({ to: token.address, value: ethers.utils.parseEther("100") });
     await addr8.sendTransaction({ to: token.address, value: ethers.utils.parseEther("100") });
     await addr9.sendTransaction({ to: token.address, value: ethers.utils.parseEther("100") });
+  })
+
+
+  
+  describe("Own Earnings Test,single user, Multiple Stake",async()=>{
+
+    it("Should calculate daily Earnings correctly with multiple stakes",async()=>{
+      await token.connect(addr1).stakeBnb({
+        value:ethers.utils.parseEther("100")
+      });
+
+      //Staking 100 BNB, daily earnings = 1%; ->  .9 BNB
+
+      await increaseDays(5);
+      await token.connect(addr1).calculateDailyEarnings();
+      let stake = await token.stakedBalance(addr1.address);
+      console.log("SingleStake",stake)
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 1").to.equal(BigNumber(9).multiply(weiMultiplier).div(10).multiply(5).toString());
+      await token.connect(addr1).stakeBnb({value:ethers.utils.parseEther("100")})
+
+      stake = await token.stakedBalance(addr1.address);
+      console.log("---------------------------------------------------")
+      console.log("2 stakes",stake)
+      firstStake = stake[0];
+      secondStake = stake[1]
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 1").to.equal(BigNumber(9).multiply(weiMultiplier).div(10).multiply(5).toString());
+      
+      expect(firstStake["ownEarnings"].add.secondStake["ownEarnings"].toString(),"Daily Earnings, Day 10").to.equal((BigNumber(9).multiply(weiMultiplier).div(10).multiply(10)).add(BigNumber(9).mult(weiMultiplier).div(10).multiply(5)).toString());
+      
+      });
 
   })
 
-  describe("Base setup", async () => {
-    it('Should set the right Owner & MinStake amount', async () => {
-      expect(await token.owner()).to.equal(owner.address);
-      expect((await token.levelInfo(1)).toString(), "level 1").to.equal((BigNumber(1).multiply(weiMultiplier)).divide(100).toLocaleString());
-      expect((await token.levelInfo(2)).toString(), "level 2").to.equal((BigNumber(1).multiply(weiMultiplier)).divide(10).toLocaleString());
-      expect((await token.levelInfo(3)).toString(), "level 3").to.equal((BigNumber(1).multiply(weiMultiplier)).toLocaleString());
-      expect((await token.levelInfo(4)).toString(), "level 4").to.equal((BigNumber(5).multiply(weiMultiplier)).toLocaleString());
-      expect((await token.levelInfo(5)).toString(), "level 5").to.equal((BigNumber(10).multiply(weiMultiplier)).toLocaleString());
-    });
+  describe("Own Earning Test, Single User, Single Stake, No Referral,Inbetween Withdrawals",async()=>{
 
-  });
+    it("Should calculate daily Earning Correctly, Single Stake",async()=>{
+
+      await token.connect(addr1).stakeBnb({
+        value:ethers.utils.parseEther("100")
+      });
+
+      //Staking 100 BNB, daily earnings = 1%; ->  .9 BNB
+
+      await increaseDays(1);
+      await token.connect(addr1).calculateDailyEarnings();
+      let stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 1").to.equal(BigNumber(9).multiply(weiMultiplier).div(10).toString());
+
+      await increaseDays(9);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 10").to.equal(BigNumber(9).multiply(weiMultiplier).toString());
+
+      await increaseDays(90);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 100").to.equal(BigNumber(90).multiply(weiMultiplier).toString());
+
+      await token.connect(addr1).withdrawOwnBonus(BigNumber(50).multiply(weiMultiplier).toString())
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 100,50 BNB wihdrawan,WITHDRAWOWN BALANCE").to.equal(BigNumber(40).multiply(weiMultiplier).toString());
+
+      await increaseDays(10);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 110").to.equal(BigNumber(49).multiply(weiMultiplier).toString());
+
+      await increaseDays(90);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 200").to.equal(BigNumber(180).multiply(weiMultiplier).toString());
+
+      await increaseDays(50);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 250").to.equal(BigNumber(225).multiply(weiMultiplier).toString());
+
+      await increaseDays(50);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 300").to.equal(BigNumber(225).multiply(weiMultiplier).toString());
+
+      await increaseDays(100);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 400").to.equal(BigNumber(225).multiply(weiMultiplier).toString());
+
+    })
+  })
+
+  describe("Staking GainsTest, Single User, Single Stake, No Referral,No Withdrawals",async()=>{
+
+    it("Should calculate daily Earning Correctly, Single Stake",async()=>{
+
+      await token.connect(addr1).stakeBnb({
+        value:ethers.utils.parseEther("100")
+      });
+
+      //Staking 100 BNB, daily earnings = 1%; ->  .9 BNB
+
+      await increaseDays(1);
+      await token.connect(addr1).calculateDailyEarnings();
+      let stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 1").to.equal(BigNumber(9).multiply(weiMultiplier).div(10).toString());
+
+      await increaseDays(9);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 10").to.equal(BigNumber(9).multiply(weiMultiplier).toString());
+
+      await increaseDays(90);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 100").to.equal(BigNumber(90).multiply(weiMultiplier).toString());
+
+      await increaseDays(10);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 110").to.equal(BigNumber(99).multiply(weiMultiplier).toString());
+
+      await increaseDays(90);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      // expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 200").to.equal(BigNumber(180).multiply(weiMultiplier).toString());
+
+      await increaseDays(50);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 250").to.equal(BigNumber(225).multiply(weiMultiplier).toString());
+
+      await increaseDays(50);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 300").to.equal(BigNumber(225).multiply(weiMultiplier).toString());
+
+      await increaseDays(100);
+      await token.connect(addr1).calculateDailyEarnings();
+      stake = await token.stakedBalance(addr1.address);
+      expect(stake["ownEarnings"].toString(),"Daily Earnings, Day 400").to.equal(BigNumber(225).multiply(weiMultiplier).toString());
+
+    })
+  })
 
   describe("Staking test, Single User, Single Stake, No referral", async () => {
+    
+    it("Should allow only registered user to add Stakes",async()=>{
 
-    it("Should Handle Single Stake correclty", async () => {
-      
+      await expect(token.connect(addr2).stakeBnb({
+        value:ethers.utils.parseEther("20")
+      })).to.be.revertedWith("User not registered")
+    })
+
+    it("Should Handle Single Stake correctly => Update user details", async () => {
       await token.connect(addr1).stakeBnb({
         value: ethers.utils.parseEther("100"),
       })
-
-      let userFunds = await token.getUserFunds(addr1.address);
-      let firstStake = userFunds[0];
-      console.log(firstStake);
-
       let stake = await token.stakedBalance(addr1.address);
-
-      // console.log(stake)
       expect(stake["totalBalance"].toString(),"Staked Total Balance").to.equal(BigNumber(100).multiply(weiMultiplier).toString());
       expect(stake["balance"].toString(),"Actual Stake").to.equal(BigNumber(100).multiply(weiMultiplier).multiply(90).divide(100).toString());
       expect((await token.connect(addr1).checkMaxEarnings()).toString(),"Max Earning Test").to.equal(BigNumber(100).multiply(weiMultiplier).multiply(90).divide(100).multiply(250).divide(100).toString())
-
     })
 
+    it("Should increase maxWithdrawal limit when a total staked amount is increased",async()=>{
 
+      await token.connect(addr1).stakeBnb({
+        value: ethers.utils.parseEther("10"),
+      })
 
+      let stake = await token.stakedBalance(addr1.address);
+      let initialDailyLimit = stake["maxWithdrawal"].toString();
+
+      expect(initialDailyLimit).to.equal(BigNumber(10).multiply(weiMultiplier).toString());
+
+      await token.connect(addr1).stakeBnb({
+        value: ethers.utils.parseEther("10")
+      })
+
+      expect(initialDailyLimit).to.equal(BigNumber(20).multiply(weiMultiplier).toString());
+    })
+
+    it("Should distribute deposit Fee correctly",async()=>{
+
+      const ownerInitialBalance = await provider.getBalance(owner.address);
+
+      await token.connect(addr1).stakeBnb({
+        value: ethers.utils.parseEther("10"),
+      })
+
+      const ownerFinalBalance = await provider.getBalance(owner.address);
+
+      expect(ownerFinalBalance.sub(ownerInitialBalance).toString()).to.equal(BigNumber(1).multiply(weiMultiplier).div(2).toString());
+    })
   })
-
-
-
+  
   describe("Staking limit Test", async () => {
 
     it("Should restrict less than minimum amount staking", async () => {
@@ -147,6 +299,17 @@ describe("Token Testing", function () {
 
   })
 
+  describe("Base setup", async () => {
+    it('Should set the right Owner & MinStake amount', async () => {
+      expect(await token.owner()).to.equal(owner.address);
+      expect((await token.levelInfo(1)).toString(), "level 1").to.equal((BigNumber(1).multiply(weiMultiplier)).divide(100).toLocaleString());
+      expect((await token.levelInfo(2)).toString(), "level 2").to.equal((BigNumber(1).multiply(weiMultiplier)).divide(10).toLocaleString());
+      expect((await token.levelInfo(3)).toString(), "level 3").to.equal((BigNumber(1).multiply(weiMultiplier)).toLocaleString());
+      expect((await token.levelInfo(4)).toString(), "level 4").to.equal((BigNumber(5).multiply(weiMultiplier)).toLocaleString());
+      expect((await token.levelInfo(5)).toString(), "level 5").to.equal((BigNumber(10).multiply(weiMultiplier)).toLocaleString());
+    });
+
+  });
 
   describe("Max withdrawl test", async () => {
 
@@ -155,7 +318,7 @@ describe("Token Testing", function () {
 
       await expect(
         token.connect(addr1).withdrawOwnBonus(
-          BigNumber(2).multiply(weiMultiplier).toString()
+          BigNumber(11).multiply(weiMultiplier).div.toString()
         )
       ).to.be.revertedWith("daily withdrawal limit reached");
     })
@@ -174,16 +337,13 @@ describe("Token Testing", function () {
       await token.connect(addr1).withdrawOwnBonus(BigNumber(15).multiply(weiMultiplier).divide(10).toString());
 
       const final = await provider.getBalance(addr1.address);
-      console.log("initial balance", initial)
+      // console.log("initial balance", initial)
 
-      console.log("final balance", final)
+      // console.log("final balance", final)
       expect(final - initial).to.equal(BigNumber(15).multiply(weiMultiplier).divide(10).subtract(tax).toString());
-
-
 
     })
   })
-
 
   describe("Eth transfer test", async () => {
 
@@ -191,14 +351,14 @@ describe("Token Testing", function () {
       console.log("************************************************")
 
       const initial = await provider.getBalance(token.address);
-      console.log("initial", BigNumber(initial.toString()).div(weiMultiplier).toString());
+      console.log("initial Contract Balance", BigNumber(initial.toString()).div(weiMultiplier).toString());
 
 
       await owner.sendTransaction({ to: token.address, value: ethers.utils.parseEther("1") });
 
 
       const final = await provider.getBalance(token.address);
-      console.log("final", BigNumber(final.toString()).div(weiMultiplier).toString());
+      console.log("final contract balance after transferring 1BNB", BigNumber(final.toString()).div(weiMultiplier).toString());
 
       console.log("**************************************")
     });
@@ -257,7 +417,5 @@ describe("Token Testing", function () {
       await expect(token.connect(addr1).registerUser(addr1.address)).to.be.revertedWith("User already registered");
     });
   })
-
-
 
 });

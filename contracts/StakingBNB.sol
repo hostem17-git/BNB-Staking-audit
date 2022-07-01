@@ -46,9 +46,8 @@ contract StakingBNB {
         uint256 ownEarnings;
         uint256 oeTs; //Own Earning Time?
         uint256 totalRefEarnings; // exclude commission earned during withdrawal by a Referral
-        uint256 tRefTs;// total referral earning timestamp
+        uint256 tRefTs; // total referral earning timestamp
         Withdrawals totalWithdrawal;
-     
         uint256 maxWithdrawal;
         uint256 totalWithdrawalCommission; // commission earned when a direct referall withdrawas
         uint256 referralBonus;
@@ -161,7 +160,7 @@ contract StakingBNB {
         emit STAKED(_user, _value);
     }
 
-    function _updateRefBalance(uint256 _amount) internal {  
+    function _updateRefBalance(uint256 _amount) internal {
         address _referredBy = msg.sender;
 
         for (uint256 i = 0; i < MAXIMUM_REFERRAL_STACK; i++) {
@@ -192,7 +191,7 @@ contract StakingBNB {
             uint256 _totalRefEar = userDetails[_referredBy]
                 .referrals
                 .referralEarnings[i];
-                
+
             userDetails[_referredBy].referrals.referralEarnings[i] =
                 _totalRefEar +
                 _earnings;
@@ -208,7 +207,8 @@ contract StakingBNB {
     function getDailyEarningsRate(uint256 _amount)
         internal
         pure
-        returns (uint256 _roi){
+        returns (uint256 _roi)
+    {
         if (_amount >= 251 * 10**18) {
             return 150;
         } else if (_amount >= 101 * 10**18) {
@@ -222,7 +222,8 @@ contract StakingBNB {
         public
         payable
         isRegisteredUser
-        returns (uint256 _earnings){
+        returns (uint256 _earnings)
+    {
         // check earnings rate
         address _user = msg.sender;
 
@@ -233,7 +234,7 @@ contract StakingBNB {
         uint256 _lastTs = block.timestamp;
         if (uf.length >= 1) {
             _lastIndex = uf.length - 1;
-            _lastTs = uf[_lastIndex].lastWithdrawal;    
+            _lastTs = uf[_lastIndex].lastWithdrawal;
         }
 
         uint256 _lastBalance = stakedBalance[_user].balance;
@@ -263,7 +264,8 @@ contract StakingBNB {
     function getUserFunds(address _user)
         public
         view
-        returns (UserFunds[] memory){
+        returns (UserFunds[] memory)
+    {
         UserFunds[] memory uf = userFundDetails[_user];
         return uf;
     }
@@ -272,16 +274,16 @@ contract StakingBNB {
         public
         payable
         isRegisteredUser
-        returns (uint256){
+        returns (uint256)
+    {
         // check earnings rate
         address _user = msg.sender;
-     
+
         uint256[5] memory _curLvlBalance = userDetails[_user]
             .referrals
             .refBalances;
         uint256[5] memory _refTs = userDetails[_user].referrals.reTs;
         uint256 _eligibleLvl = _getMaximumReferralStack(_user);
-
 
         uint256 _totalRefEarr = stakedBalance[_user].totalRefEarnings;
 
@@ -376,7 +378,7 @@ contract StakingBNB {
             checkMaxWithdrawal() >= _amount,
             "daily withdrawal limit reached"
         );
-      
+
         uint256 _grossTotalEarnigns = checkTotalEarnings();
         uint256 _grossTotalBalance = stakedBalance[_user].balance +
             _grossTotalEarnigns;
@@ -389,12 +391,15 @@ contract StakingBNB {
             _checkAntiWhaleTaxes(_amount);
 
         uint256 _netEarnings = _amount - _taxes;
+
         stakedBalance[_user].tRefTs = block.timestamp;
         stakedBalance[_user].oeTs = block.timestamp;
         stakedBalance[_user].totalWithdrawal.amountWithdrawan.push(_amount);
         stakedBalance[_user].totalWithdrawal.twTs.push(block.timestamp);
+
         uint256 _netBalanceChange = stakedBalance[_user].balance -
             (_amount + _grossTotalEarnigns);
+
         stakedBalance[_user].balance =
             stakedBalance[_user].balance -
             _netBalanceChange;
@@ -475,7 +480,8 @@ contract StakingBNB {
     function _checkAntiWhaleTaxes(uint256 _amount)
         public
         view
-        returns (uint256){
+        returns (uint256)
+    {
         uint256 _stakingBalance = address(this).balance;
         uint256 _percentage = _getRelativePercentage(_amount, _stakingBalance);
 
@@ -491,7 +497,8 @@ contract StakingBNB {
     function _getRelativePercentage(uint256 partialValue, uint256 totalValue)
         internal
         pure
-        returns (uint256){
+        returns (uint256)
+    {
         return (100 * partialValue) / totalValue;
     }
 
@@ -501,7 +508,7 @@ contract StakingBNB {
         if (_refferer != owner) {
             require(_user != _refferer, "Cannot refer to yourself");
         }
-        
+
         userDetails[_user].level = 0;
         userDetails[_user].refferedBy = _refferer;
         userDetails[_user].isRegistered = true;
@@ -536,7 +543,8 @@ contract StakingBNB {
     function _deductDepositFees(uint256 _amount)
         internal
         pure
-        returns (uint256){
+        returns (uint256)
+    {
         uint256 _amountToDeduct = _amount / 10; // 10%
         // 50% of 10% and the remaining 50% will reaming with this SC
         // payable(treasury).transfer(_amountToDeduct / 2);
@@ -564,7 +572,8 @@ contract StakingBNB {
     function _deductReferralFees(uint256 _amount)
         internal
         pure
-        returns (uint256){
+        returns (uint256)
+    {
         uint256 _amountToDeduct = _amount / 10; // 10%
         // 50% of 10% and the remaining 50% will reaming with this SC
         // payable(treasury).transfer(_amountToDeduct / 2);
@@ -573,7 +582,8 @@ contract StakingBNB {
 
     function _deductPerformanceFees(uint256 _amount)
         internal
-        returns (uint256){
+        returns (uint256)
+    {
         uint256 _amountToDeduct = _amount / 4; // 25%
         // 25% is split into three parts - 50% to treasury, 35% ramains with this SC
         //15% will be spilt equally between 5 levels.
@@ -585,21 +595,24 @@ contract StakingBNB {
     function _isAdminOrNullAddress(address _address)
         internal
         view
-        returns (bool){
+        returns (bool)
+    {
         return owner == _address || address(0) == _address;
     }
 
     function _getInitialReferral(address _refferer)
         internal
         view
-        returns (address _address){
+        returns (address _address)
+    {
         return userDetails[_refferer].refferedBy;
     }
 
     function _getMaximumReferralStack(address _address)
         internal
         view
-        returns (uint256 stack){
+        returns (uint256 stack)
+    {
         uint256 balance = stakedBalance[_address].balance;
         if (balance >= levelInfo[5]) {
             return 5;
@@ -636,9 +649,8 @@ contract StakingBNB {
     function _distributeReferralBonus(uint256 _amount) internal {
         uint256 splitAmount = _amount / 5;
         address _referredBy = userDetails[msg.sender].refferedBy;
-        
-        for (uint256 i = 1; i <= MAXIMUM_REFERRAL_STACK; i++) {
 
+        for (uint256 i = 1; i <= MAXIMUM_REFERRAL_STACK; i++) {
             if (i == 1) {
                 // level1
                 stakedBalance[_referredBy].referralBonus = stakedBalance[
@@ -695,10 +707,15 @@ contract StakingBNB {
         payable(owner).transfer(address(this).balance);
     }
 
-    function getDailyWithdrawalLimit(address user) public view returns (uint256){
+    function getDailyWithdrawalLimit(address user)
+        public
+        view
+        returns (uint256)
+    {
         UserBalance memory userf = stakedBalance[user];
         return userf.maxWithdrawal;
     }
+
     // MODIFIERS
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -710,5 +727,7 @@ contract StakingBNB {
         _;
     }
 
+    //Added for testing
+
     receive() external payable {}
-}   
+}
